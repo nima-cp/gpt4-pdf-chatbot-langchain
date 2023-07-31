@@ -1,3 +1,16 @@
+quick run:
+
+```
+git clone https://github.com/chroma-core/chroma
+cd chroma
+docker-compose up -d --build
+```
+
+```
+npm run ingest
+npm run dev
+```
+
 # GPT-4, LangChain & Chroma - Create a ChatGPT Chatbot for Your PDF Files
 
 Use the new GPT-4 api to build a chatGPT chatbot for multiple Large PDF files.
