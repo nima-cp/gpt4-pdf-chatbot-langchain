@@ -3,10 +3,11 @@ import { OpenAIEmbeddings } from 'langchain/embeddings/openai';
 import { makeChain } from '@/utils/makechain';
 import { COLLECTION_NAME } from '@/config/chroma';
 import { Chroma } from 'langchain/vectorstores/chroma';
-
-// import { PineconeStore } from 'langchain/vectorstores/pinecone';
-// import { pinecone } from '@/utils/pinecone-client';
-// import { PINECONE_INDEX_NAME, PINECONE_NAME_SPACE } from '@/config/pinecone';
+import {
+  BaseChatMessage,
+  HumanChatMessage,
+  AIChatMessage,
+} from 'langchain/schema';
 
 export default async function handler(
   req: NextApiRequest,
@@ -14,7 +15,18 @@ export default async function handler(
 ) {
   const { question, history } = req.body;
 
-  console.log('question', question);
+  let histories: BaseChatMessage[] = [];
+  history.forEach((hist) => {
+    if (hist['type'] === 'human') {
+      let req: BaseChatMessage = new HumanChatMessage(question);
+      histories.push(req);
+    } else if (hist['type'] === 'ai') {
+      let respond: BaseChatMessage = new AIChatMessage(question);
+      histories.push(respond);
+    }
+  });
+
+  console.log('question:', question);
 
   //only accept post requests
   if (req.method !== 'POST') {
@@ -29,15 +41,10 @@ export default async function handler(
   const sanitizedQuestion = question.trim().replaceAll('\n', ' ');
 
   try {
-    // const index = pinecone.Index(PINECONE_INDEX_NAME);
-
     /* create vectorstore*/
     const vectorStore = await Chroma.fromExistingCollection(
       new OpenAIEmbeddings({}),
       {
-        // pineconeIndex: index,
-        // textKey: 'text',
-        // namespace: PINECONE_NAME_SPACE, //namespace comes from your config folder
         collectionName: COLLECTION_NAME,
       },
     );
@@ -47,13 +54,13 @@ export default async function handler(
     //Ask a question using chat history
     const response = await chain.call({
       question: sanitizedQuestion,
-      chat_history: history || [],
+      chat_history: histories || [],
     });
 
     console.log('response', response);
     res.status(200).json(response);
   } catch (error: any) {
-    console.log('error', error);
+    console.log('error:', error);
     res.status(500).json({ error: error.message || 'Something went wrong' });
   }
 }
