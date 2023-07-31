@@ -5,6 +5,15 @@ import { DirectoryLoader } from 'langchain/document_loaders/fs/directory';
 import { Chroma } from 'langchain/vectorstores/chroma';
 import { COLLECTION_NAME } from '@/config/chroma';
 
+import {
+  JSONLoader,
+  JSONLinesLoader,
+} from 'langchain/document_loaders/fs/json';
+import { TextLoader } from 'langchain/document_loaders/fs/text';
+import { CSVLoader } from 'langchain/document_loaders/fs/csv';
+import { DocxLoader } from 'langchain/document_loaders/fs/docx';
+import { UnstructuredLoader } from 'langchain/document_loaders/fs/unstructured';
+
 /* Name of directory to retrieve your files from */
 const filePath = 'docs';
 
@@ -13,6 +22,15 @@ export const run = async () => {
     /*load raw docs from the all files in the directory */
     const directoryLoader = new DirectoryLoader(filePath, {
       '.pdf': (path) => new PDFLoader(path),
+      '.docx': (path) => new DocxLoader(path),
+      '.json': (path) => new JSONLoader(path, '/texts'),
+      '.jsonl': (path) => new JSONLinesLoader(path, '/html'),
+      '.txt': (path) => new TextLoader(path),
+      '.csv': (path) => new CSVLoader(path, 'text'),
+      '.htm': (path) => new UnstructuredLoader(path),
+      '.html': (path) => new UnstructuredLoader(path),
+      '.ppt': (path) => new UnstructuredLoader(path),
+      '.pptx': (path) => new UnstructuredLoader(path),
     });
 
     const rawDocs = await directoryLoader.load();
