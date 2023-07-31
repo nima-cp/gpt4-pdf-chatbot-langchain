@@ -5,6 +5,7 @@ import { pinecone } from '@/utils/pinecone-client';
 import { PDFLoader } from 'langchain/document_loaders/fs/pdf';
 import { PINECONE_INDEX_NAME, PINECONE_NAME_SPACE } from '@/config/pinecone';
 import { DirectoryLoader } from 'langchain/document_loaders/fs/directory';
+// import {HttpsProxyAgent} from "https-proxy-agent";
 
 /* Name of directory to retrieve your files from 
    Make sure to add your PDF files inside the 'docs' folder
@@ -33,6 +34,8 @@ export const run = async () => {
     console.log('creating vector store...');
     /*create and store the embeddings in the vectorStore*/
     const embeddings = new OpenAIEmbeddings();
+    // const agent = new HttpsProxyAgent('http://IP:8080'); 
+    // const embeddings = new OpenAIEmbeddings({ verbose: true, openAIApiKey: '' }, { baseOptions: { proxy: false, httpAgent: agent, httpsAgent: agent, }, });
     const index = pinecone.Index(PINECONE_INDEX_NAME); //change to your own index name
 
     //embed the PDF documents
