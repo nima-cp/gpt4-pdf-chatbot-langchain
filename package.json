@@ -22,7 +22,7 @@
     "clsx": "^1.2.1",
     "dotenv": "^16.0.3",
     "http-simple-proxy": "^1.0.5",
-    "langchain": "0.0.82",
+    "langchain": "0.0.90",
     "lucide-react": "^0.125.0",
     "next": "13.2.3",
     "pdf-parse": "1.1.1",
