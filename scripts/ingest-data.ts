@@ -2,56 +2,34 @@ import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
 import { OpenAIEmbeddings } from 'langchain/embeddings/openai';
 import { PDFLoader } from 'langchain/document_loaders/fs/pdf';
 import { DirectoryLoader } from 'langchain/document_loaders/fs/directory';
-import { Chroma } from 'langchain/vectorstores/chroma';
-import { COLLECTION_NAME } from '@/config/chroma';
+import { FaissStore } from 'langchain/vectorstores/faiss';
 
-import {
-  JSONLoader,
-  JSONLinesLoader,
-} from 'langchain/document_loaders/fs/json';
-import { TextLoader } from 'langchain/document_loaders/fs/text';
-import { CSVLoader } from 'langchain/document_loaders/fs/csv';
-import { DocxLoader } from 'langchain/document_loaders/fs/docx';
-import { UnstructuredLoader } from 'langchain/document_loaders/fs/unstructured';
-
-/* Name of directory to retrieve your files from */
 const filePath = 'docs';
+const directory = '/db/vectordb';
 
 export const run = async () => {
   try {
-    /*load raw docs from the all files in the directory */
     const directoryLoader = new DirectoryLoader(filePath, {
       '.pdf': (path) => new PDFLoader(path),
-      '.docx': (path) => new DocxLoader(path),
-      '.json': (path) => new JSONLoader(path, '/texts'),
-      '.jsonl': (path) => new JSONLinesLoader(path, '/html'),
-      '.txt': (path) => new TextLoader(path),
-      '.csv': (path) => new CSVLoader(path, 'text'),
-      '.htm': (path) => new UnstructuredLoader(path),
-      '.html': (path) => new UnstructuredLoader(path),
-      '.ppt': (path) => new UnstructuredLoader(path),
-      '.pptx': (path) => new UnstructuredLoader(path),
     });
-
+    // Create docs with a loader
     const rawDocs = await directoryLoader.load();
-
-    /* Split text into chunks */
     const textSplitter = new RecursiveCharacterTextSplitter({
       chunkSize: 1000,
       chunkOverlap: 200,
     });
-
     const docs = await textSplitter.splitDocuments(rawDocs);
-    // console.log('split docs', docs);
 
-    console.log('creating vector store...');
-    /*create and store the embeddings in the vectorStore*/
-
+    // Load the docs into the vector store
     const embedder = new OpenAIEmbeddings();
+    const vectorStore = await FaissStore.fromDocuments(docs, embedder);
 
-    await Chroma.fromDocuments(docs, embedder, {
-      collectionName: COLLECTION_NAME,
-    });
+    // Save the vector store
+    await vectorStore.save(directory);
+
+    // // Search for the most similar document
+    // const resultOne = await vectorStore.similaritySearchWithScore('date', 3);
+    // console.log(resultOne);
   } catch (error) {
     console.log('error', error);
     throw new Error('Failed to ingest your data');
