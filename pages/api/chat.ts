@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { OpenAIEmbeddings } from 'langchain/embeddings/openai';
 import { makeChain } from '@/utils/makechain';
-import { COLLECTION_NAME } from '@/config/chroma';
-import { Chroma } from 'langchain/vectorstores/chroma';
+import { FaissStore } from 'langchain/vectorstores/faiss';
+
 import {
   BaseChatMessage,
   HumanChatMessage,
@@ -40,17 +40,13 @@ export default async function handler(
   // OpenAI recommends replacing newlines with spaces for best results
   const sanitizedQuestion = question.trim().replaceAll('\n', ' ');
 
-  try {
-    /* create vectorstore*/
-    const vectorStore = await Chroma.fromExistingCollection(
-      new OpenAIEmbeddings({}),
-      {
-        collectionName: COLLECTION_NAME,
-      },
-    );
+  const directory = '/db/vectordb/faiss';
+  const embedder = new OpenAIEmbeddings();
 
+  try {
+    const loadedVectorStore = await FaissStore.load(directory, embedder);
     //create chain
-    const chain = makeChain(vectorStore);
+    const chain = makeChain(loadedVectorStore);
     //Ask a question using chat history
     const response = await chain.call({
       question: sanitizedQuestion,
