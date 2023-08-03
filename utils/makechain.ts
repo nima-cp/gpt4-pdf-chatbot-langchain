@@ -2,6 +2,18 @@ import { OpenAI } from 'langchain/llms/openai';
 import { ConversationalRetrievalQAChain } from 'langchain/chains';
 import { Chroma } from 'langchain/vectorstores/chroma';
 
+interface ResponseType {
+  short: number;
+  normal: number;
+  long: number;
+}
+const type_of_response: ResponseType = {
+  short: 0.0,
+  normal: 0.5,
+  long: 1,
+};
+const temperature: number = type_of_response.short;
+
 const CONDENSE_PROMPT = `Given the following conversation and a follow up question, rephrase the follow up question to be a standalone question.
 
 Chat History:
@@ -18,17 +30,18 @@ If the question is not related to the context, politely respond that you are tun
 Question: {question}
 Helpful answer in markdown:`;
 
-export const makeChain = (vectorstore: Chroma) => {
+export const makeChain = (vectorStore: Chroma) => {
   const model = new OpenAI({
-    temperature: 0, // increase temperature to get more creative answers
-    // modelName: 'gpt-3.5-turbo', //change this to gpt-4 if you have access
-    modelName: 'gpt-3.5-turbo-0613',
+    temperature: temperature, // increase temperature to get more creative answers
+    modelName: 'gpt-3.5-turbo', //change this to gpt-4 if you have access
+    // modelName: 'gpt-3.5-turbo-0613',
     //modelName: 'gpt-4',
   });
-
+  const vectorStoreRetriever = vectorStore.asRetriever();
+  vectorStoreRetriever.k = 2;
   const chain = ConversationalRetrievalQAChain.fromLLM(
     model,
-    vectorstore.asRetriever(),
+    vectorStoreRetriever,
     {
       qaTemplate: QA_PROMPT,
       questionGeneratorTemplate: CONDENSE_PROMPT,
