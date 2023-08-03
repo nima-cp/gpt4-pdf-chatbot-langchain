@@ -20,6 +20,7 @@
     "@radix-ui/react-accordion": "^1.1.1",
     "chromadb": "^1.5.5",
     "clsx": "^1.2.1",
+    "d3-dsv": "2",
     "dotenv": "^16.0.3",
     "http-simple-proxy": "^1.0.5",
     "langchain": "0.0.90",

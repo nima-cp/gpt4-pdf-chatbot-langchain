@@ -21,7 +21,7 @@ export const run = async () => {
   try {
     /*load raw docs from the all files in the directory */
     const directoryLoader = new DirectoryLoader(filePath, {
-      '.pdf': (path) => new PDFLoader(path),
+      '.pdf': (path) => new PDFLoader(path, { splitPages: true }),
       '.docx': (path) => new DocxLoader(path),
       '.json': (path) => new JSONLoader(path, '/texts'),
       '.jsonl': (path) => new JSONLinesLoader(path, '/html'),
@@ -38,18 +38,22 @@ export const run = async () => {
     /* Split text into chunks */
     const textSplitter = new RecursiveCharacterTextSplitter({
       chunkSize: 1000,
-      chunkOverlap: 200,
+      chunkOverlap: 100,
+      separators: ['\n\n', '\n', '(?<=. )', ' ', ''],
     });
 
     const docs = await textSplitter.splitDocuments(rawDocs);
     // console.log('split docs', docs);
 
     console.log('creating vector store...');
-    /*create and store the embeddings in the vectorStore*/
+    rawDocs.map((i) => {
+      console.log(i.metadata.source);
+    });
 
     const embedder = new OpenAIEmbeddings();
 
-    await Chroma.fromDocuments(docs, embedder, {
+    /*create and store the embeddings in the vectorStore*/
+    const vectorStore = await Chroma.fromDocuments(docs, embedder, {
       collectionName: COLLECTION_NAME,
     });
   } catch (error) {

@@ -41,7 +41,7 @@ export default async function handler(
   const sanitizedQuestion = question.trim().replaceAll('\n', ' ');
 
   try {
-    /* create vectorstore*/
+    /* create vectorStore*/
     const vectorStore = await Chroma.fromExistingCollection(
       new OpenAIEmbeddings({}),
       {
