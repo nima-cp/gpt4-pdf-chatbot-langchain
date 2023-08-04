@@ -9,8 +9,11 @@ from langchain.document_loaders import PyMuPDFLoader
 from langchain.document_loaders import DirectoryLoader
 from langchain.vectorstores import Chroma
 
+# %% Deleting the DB
+# # To cleanup, you can delete the collection
+# vectorStore.delete_collection()
+# vectorStore.persist()
 # %%
-
 filePath = "../docs"
 # Load and process the text files
 loader = DirectoryLoader(filePath, glob="./*.pdf", loader_cls=PyMuPDFLoader)
@@ -87,4 +90,3 @@ vectorStore.persist()
 
 print("ingest is done")
 
-# %%
