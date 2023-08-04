@@ -18,7 +18,6 @@ vectorStore = Chroma(persist_directory=persist_directory, embedding_function=emb
 
 
 # %%
-question = "References and Further Reading"
 question = "regression"
 matching_docs = vectorStore.similarity_search(question, k=3)
 print(matching_docs)
@@ -84,7 +83,7 @@ conversational_chain = ConversationalRetrievalChain.from_llm(
 )
 
 chat_history = []
-question = "what is the iban of WORLD FUEL SERVICE SINGAPORE5"
+question = "Exchange Rate of WORLD FUEL SERVICE SINGAPORE5"
 result = conversational_chain({"question": question, "chat_history": chat_history})
 # result = conversational_chain({"question": question})
 print(result)
@@ -101,25 +100,32 @@ print(result["answer"])
 
 # %%
 ## Cite sources
-def process_llm_response(llm_response):
-    print(llm_response["answer"])
+def process_llm_response(result):
+    print(result["answer"])
     print("\n\nSources:")
-    for source in llm_response["source_documents"]:
+    for source in result["source_documents"]:
         print(source.metadata["source"])
 
 
 # %%
 # example
 question = "what is the iban of WORLD FUEL SERVICE SINGAPORE5"
-llm_response = conversational_chain(
-    {"question": question, "chat_history": chat_history}
-)
-process_llm_response(llm_response)
+result = conversational_chain({"question": question, "chat_history": chat_history})
+process_llm_response(result)
 
 # %%
 # break it down
-question = "hi?"
-llm_response = conversational_chain(
-    {"question": question, "chat_history": chat_history}
-)
-process_llm_response(llm_response)
+# question = "qual è amount e quantity di l'airport fee e quale pagina e quale documento è la risposta?"
+question = "invoice total and due date of bp oil hellenic"
+
+with get_openai_callback() as cb:
+    result = conversational_chain({"question": question, "chat_history": chat_history})
+    process_llm_response(result)
+
+    print("--------------------------------")
+    print(f"Prompt Tokens: {cb.prompt_tokens}")
+    print(f"Completion Tokens: {cb.completion_tokens}")
+    print(f"Total Tokens: {cb.total_tokens}")
+    print(f"Total Cost (USD): ${cb.total_cost}")
+
+# %%
