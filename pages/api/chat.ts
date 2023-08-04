@@ -3,11 +3,7 @@ import { OpenAIEmbeddings } from 'langchain/embeddings/openai';
 import { makeChain } from '@/utils/makechain';
 import { COLLECTION_NAME } from '@/config/chroma';
 import { Chroma } from 'langchain/vectorstores/chroma';
-import {
-  BaseChatMessage,
-  HumanChatMessage,
-  AIChatMessage,
-} from 'langchain/schema';
+import { BaseMessage, HumanMessage, AIMessage } from 'langchain/schema';
 
 export default async function handler(
   req: NextApiRequest,
@@ -15,13 +11,13 @@ export default async function handler(
 ) {
   const { question, history } = req.body;
 
-  let histories: BaseChatMessage[] = [];
+  let histories: BaseMessage[] = [];
   history.forEach((hist) => {
     if (hist['type'] === 'human') {
-      let req: BaseChatMessage = new HumanChatMessage(question);
+      let req: BaseMessage = new HumanMessage(question);
       histories.push(req);
     } else if (hist['type'] === 'ai') {
-      let respond: BaseChatMessage = new AIChatMessage(question);
+      let respond: BaseMessage = new AIMessage(question);
       histories.push(respond);
     }
   });
