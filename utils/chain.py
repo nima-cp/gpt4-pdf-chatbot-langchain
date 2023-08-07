@@ -72,11 +72,11 @@ prompt = PromptTemplate(
 
 
 # %% conversational Retrieval Chain
-from langchain.memory import ConversationBufferMemory
+from langchain.memory import ConversationBufferWindowMemory
 
-memory = ConversationBufferMemory(
-    memory_key="chat_history", return_messages=True, output_key="answer"
-)
+memory = ConversationBufferWindowMemory(
+    k=5, memory_key="chat_history", output_key="answer"
+)  # return_messages=True
 
 conversational_chain = ConversationalRetrievalChain.from_llm(
     llm=llm,
