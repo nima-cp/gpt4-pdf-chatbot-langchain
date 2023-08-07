@@ -37,21 +37,24 @@ llm = ChatOpenAI(model_name=model_name, temperature=0)
 # %%
 # ## Make a retriever
 vectorStoreRetriever = vectorStore.as_retriever(search_kwargs={"k": 3})
+# %% The prompt
+from langchain.prompts import PromptTemplate
+
+template = """Use chat history : {chat_history} to determine the condition you are to research if not blank
+
+Use the following pieces of context to answer the question at the end.
+{context}
+If you still cant find the answer, just say that you don't know, don't try to make up an answer.
+You can also look into chat history.
+{chat_history}
+Question: {question}
+Answer:
+"""
+prompt = PromptTemplate(
+    input_variables=["context", "chat_history", "question"],
+    template=template,
+)
 # %%
-
-
-# # Build prompt
-# from langchain.prompts import PromptTemplate
-
-# template = """Use the following pieces of context to answer the question at the end. If you don't know the answer, just say that you don't know, don't try to make up an answer. Use three sentences maximum. Keep the answer as concise as possible.
-# {context}
-# Question: {question}
-# Helpful Answer:"""
-# QA_CHAIN_PROMPT = PromptTemplate(
-#     input_variables=["context", "question"],
-#     template=template,
-# )
-# # %%
 # # Run chain
 # # question = "what is random forest"
 
@@ -60,7 +63,7 @@ vectorStoreRetriever = vectorStore.as_retriever(search_kwargs={"k": 3})
 #     retriever=vectorStoreRetriever,
 #     chain_type="stuff",
 #     return_source_documents=True,
-#     chain_type_kwargs={"prompt": QA_CHAIN_PROMPT},
+# chain_type_kwargs={"prompt": prompt},
 # )
 
 # result = qa_chain({"query": question})
@@ -71,15 +74,19 @@ vectorStoreRetriever = vectorStore.as_retriever(search_kwargs={"k": 3})
 # %% conversational Retrieval Chain
 from langchain.memory import ConversationBufferMemory
 
-# memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
+memory = ConversationBufferMemory(
+    memory_key="chat_history", return_messages=True, output_key="answer"
+)
 
 conversational_chain = ConversationalRetrievalChain.from_llm(
     llm=llm,
     retriever=vectorStoreRetriever,
-    # memory=memory,
+    memory=memory,
     chain_type="stuff",
     return_source_documents=True,
     return_generated_question=True,
+    combine_docs_chain_kwargs={"prompt": prompt},
+    get_chat_history=lambda h: h,
 )
 
 chat_history = []
@@ -91,7 +98,8 @@ print(result["answer"])
 
 # %%
 chat_history.append((question, result["answer"]))
-question = "can you explain more about it?"
+# question = "can you translate the last message in italian?"
+question = "divide that number by 2?"
 
 result = conversational_chain({"question": question, "chat_history": chat_history})
 print(result)
